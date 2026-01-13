@@ -1,0 +1,213 @@
+:root {
+  /* Colors - Apple-inspired Palette */
+  --color-bg-primary: #F5F5F7;
+  /* Light gray background like iOS settings */
+  --color-bg-secondary: #FFFFFF;
+  /* White cards */
+  --color-bg-tertiary: #E5E5EA;
+  /* Inputs/inactive elements */
+
+  --color-text-primary: #1D1D1F;
+  /* Almost black */
+  --color-text-secondary: #86868B;
+  /* Gray text */
+  --color-text-tertiary: #BFC0C4;
+  /* Light gray text */
+
+  --color-accent: #007AFF;
+  /* iOS Blue */
+  --color-accent-hover: #0056B3;
+  --color-success: #34C759;
+  --color-warning: #FF9500;
+  --color-danger: #FF3B30;
+
+  /* Typography */
+  --font-family-system: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 24px;
+  --font-size-2xl: 32px;
+  --font-size-3xl: 40px;
+
+  /* Spacing - 8pt Grid */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-8: 48px;
+  --space-10: 64px;
+
+  /* BorderRadius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+
+  /* Shadows - Smooth & Subtle */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.12);
+  --shadow-float: 0 20px 40px rgba(0, 0, 0, 0.15);
+
+  /* Animation */
+  --ease-out-smooth: cubic-bezier(0.33, 1, 0.68, 1);
+  --duration-fast: 200ms;
+  --duration-normal: 350ms;
+}
+
+/* Dark Mode - Manual Override & System Preference fallback logic handled in JS/Context */
+[data-theme='dark'] {
+  --color-bg-primary: #000000;
+  --color-bg-secondary: #1C1C1E;
+  --color-bg-tertiary: #2C2C2E;
+
+  --color-text-primary: #F5F5F7;
+  --color-text-secondary: #86868B;
+  --color-text-tertiary: #48484A;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family-system);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color var(--duration-normal) var(--ease-out-smooth), color var(--duration-normal) var(--ease-out-smooth);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+/* Utility Classes */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--space-4);
+}
+
+.card {
+  background-color: var(--color-bg-secondary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-5);
+  transition: box-shadow var(--duration-normal) var(--ease-out-smooth),
+    transform var(--duration-normal) var(--ease-out-smooth),
+    background-color var(--duration-normal) var(--ease-out-smooth),
+    color var(--duration-normal) var(--ease-out-smooth);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-full);
+  font-weight: 500;
+  font-size: var(--font-size-base);
+  transition: all var(--duration-fast) var(--ease-out-smooth);
+}
+
+.btn-primary {
+  background-color: var(--color-accent);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-accent-hover);
+  transform: scale(1.02);
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.text-h1 {
+  font-size: var(--font-size-3xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.text-h2 {
+  font-size: var(--font-size-2xl);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.text-h3 {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+}
+
+.text-body {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+}
+
+.text-caption {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/* Layout Utilities */
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.gap-2 {
+  gap: var(--space-2);
+}
+
+.gap-4 {
+  gap: var(--space-4);
+}
+
+/* Animation Utils */
+.fade-in {
+  animation: fadeIn var(--duration-normal) var(--ease-out-smooth) forwards;
+  opacity: 0;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
