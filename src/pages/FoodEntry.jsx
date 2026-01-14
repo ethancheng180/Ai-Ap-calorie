@@ -2,20 +2,35 @@ import { useState } from 'react';
 import ImageUploader from '../components/food/ImageUploader';
 import Card from '../components/ui/Card';
 import MacroCard from '../components/analytics/MacroCard';
-import { Loader2, CheckCircle2 } from 'lucide-react';
+import { Loader2, CheckCircle2, AlertCircle, Save } from 'lucide-react';
+import { analyzeFoodImage } from '../services/gemini';
+import { saveFoodEntry } from '../services/foodService';
+import { useAuth } from '../context/AuthContext';
 
 export default function FoodEntry() {
-    const [status, setStatus] = useState('idle'); // idle, analyzing, result
+    const { currentUser } = useAuth();
+    const [status, setStatus] = useState('idle'); // idle, analyzing, result, error
     const [image, setImage] = useState(null);
+    const [analysisResult, setAnalysisResult] = useState(null);
+    const [errorMsg, setErrorMsg] = useState('');
+    const [saved, setSaved] = useState(false);
+    const [saving, setSaving] = useState(false);
 
-    const handleImageSelected = (file, previewUrl) => {
+    const handleImageSelected = async (file, previewUrl) => {
         if (file) {
             setImage(previewUrl);
             setStatus('analyzing');
-            // Mock analysis delay
-            setTimeout(() => {
+            setErrorMsg('');
+
+            try {
+                const result = await analyzeFoodImage(file);
+                setAnalysisResult(result);
                 setStatus('result');
-            }, 2500);
+            } catch (err) {
+                console.error(err);
+                setErrorMsg('Failed to analyze image. Check your API Key or try again.');
+                setStatus('error');
+            }
         } else {
             setStatus('idle');
             setImage(null);
@@ -25,6 +40,30 @@ export default function FoodEntry() {
     const reset = () => {
         setStatus('idle');
         setImage(null);
+        setAnalysisResult(null);
+        setErrorMsg('');
+        setSaved(false);
+        setSaving(false);
+    };
+
+    const handleSave = async () => {
+        if (!currentUser || !analysisResult) return;
+
+        setSaving(true);
+        try {
+            await saveFoodEntry(currentUser.uid, {
+                foodName: analysisResult.foodName,
+                calories: analysisResult.calories,
+                macros: analysisResult.macros,
+                description: analysisResult.description,
+                imageDataUrl: image // Storing as base64 for simplicity
+            });
+            setSaved(true);
+        } catch (err) {
+            console.error('Failed to save:', err);
+            setErrorMsg('Failed to save to log.');
+        }
+        setSaving(false);
     };
 
     return (
@@ -39,10 +78,18 @@ export default function FoodEntry() {
                     <ImageUploader onImageSelected={handleImageSelected} />
                 )}
 
+                {status === 'error' && (
+                    <Card className="flex-center flex-col" style={{ minHeight: '300px', gap: 'var(--space-4)', borderColor: '#ff4d4f' }}>
+                        <AlertCircle size={48} color="#ff4d4f" />
+                        <p className="text-body" style={{ color: '#ff4d4f' }}>{errorMsg}</p>
+                        <button className="btn btn-primary" onClick={reset}>Try Again</button>
+                    </Card>
+                )}
+
                 {status === 'analyzing' && (
                     <Card className="flex-center flex-col" style={{ minHeight: '300px', gap: 'var(--space-4)' }}>
                         <Loader2 className="spin" size={48} color="var(--color-accent)" />
-                        <p className="text-body">Analyzing your food...</p>
+                        <p className="text-body">AI is analyzing your food...</p>
                         <style>{`
                .spin { animation: spin 1s linear infinite; }
                @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -50,7 +97,7 @@ export default function FoodEntry() {
                     </Card>
                 )}
 
-                {status === 'result' && (
+                {status === 'result' && analysisResult && (
                     <div className="fade-in space-y-6">
                         <div style={{ display: 'flex', gap: 'var(--space-4)', alignItems: 'flex-start' }}>
                             <div style={{ width: '150px', height: '150px', borderRadius: 'var(--radius-lg)', overflow: 'hidden', flexShrink: 0 }}>
@@ -58,14 +105,14 @@ export default function FoodEntry() {
                             </div>
                             <div style={{ flex: 1 }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-2)' }}>
-                                    <h2 className="text-h2">Salmon Salad Bowl</h2>
+                                    <h2 className="text-h2">{analysisResult.foodName}</h2>
                                     <CheckCircle2 size={24} color="var(--color-success)" />
                                 </div>
                                 <p className="text-body" style={{ marginBottom: 'var(--space-4)' }}>
-                                    Healthy mix of greens, protein, and healthy fats. Good source of Omega-3.
+                                    {analysisResult.description}
                                 </p>
                                 <div style={{ display: 'inline-flex', padding: '8px 16px', backgroundColor: 'var(--color-bg-tertiary)', borderRadius: 'var(--radius-full)' }}>
-                                    <span style={{ fontWeight: 600 }}>450 kcal</span>
+                                    <span style={{ fontWeight: 600 }}>{analysisResult.calories} kcal</span>
                                 </div>
                             </div>
                         </div>
@@ -73,30 +120,42 @@ export default function FoodEntry() {
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-4)' }}>
                             <Card title="Macros">
                                 <div style={{ paddingTop: 'var(--space-2)' }}>
-                                    <MacroCard label="Protein" value={35} total={180} color="#FF3B30" />
-                                    <MacroCard label="Carbs" value={12} total={250} color="#34C759" />
-                                    <MacroCard label="Fat" value={22} total={80} color="#FF9500" />
+                                    <MacroCard label="Protein" value={analysisResult.macros.protein} total={180} color="#FF3B30" />
+                                    <MacroCard label="Carbs" value={analysisResult.macros.carbs} total={250} color="#34C759" />
+                                    <MacroCard label="Fat" value={analysisResult.macros.fat} total={80} color="#FF9500" />
                                 </div>
                             </Card>
                             <Card title="Micronutrients">
                                 <ul style={{ listStyle: 'none', padding: 0 }}>
-                                    <li className="flex-between" style={{ padding: '8px 0', borderBottom: '1px solid var(--color-bg-tertiary)' }}>
-                                        <span className="text-body">Vitamin D</span>
-                                        <span style={{ fontWeight: 500 }}>30%</span>
-                                    </li>
-                                    <li className="flex-between" style={{ padding: '8px 0', borderBottom: '1px solid var(--color-bg-tertiary)' }}>
-                                        <span className="text-body">Iron</span>
-                                        <span style={{ fontWeight: 500 }}>15%</span>
-                                    </li>
-                                    <li className="flex-between" style={{ padding: '8px 0' }}>
-                                        <span className="text-body">Calcium</span>
-                                        <span style={{ fontWeight: 500 }}>5%</span>
-                                    </li>
+                                    {analysisResult.micronutrients && analysisResult.micronutrients.map((micro, idx) => (
+                                        <li key={idx} className="flex-between" style={{ padding: '8px 0', borderBottom: '1px solid var(--color-bg-tertiary)' }}>
+                                            <span className="text-body">{micro.name}</span>
+                                            <span style={{ fontWeight: 500 }}>{micro.value}</span>
+                                        </li>
+                                    ))}
+                                    {(!analysisResult.micronutrients || analysisResult.micronutrients.length === 0) && (
+                                        <li className="text-body" style={{ opacity: 0.7 }}>No significant data found.</li>
+                                    )}
                                 </ul>
                             </Card>
                         </div>
 
-                        <div className="flex-center" style={{ marginTop: 'var(--space-8)' }}>
+                        <div className="flex-center" style={{ marginTop: 'var(--space-8)', gap: 'var(--space-4)' }}>
+                            <button
+                                className="btn"
+                                onClick={handleSave}
+                                disabled={saved || saving}
+                                style={{
+                                    backgroundColor: saved ? 'var(--color-success)' : 'var(--color-bg-tertiary)',
+                                    color: saved ? 'white' : 'var(--color-text-primary)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px'
+                                }}
+                            >
+                                <Save size={18} />
+                                {saving ? 'Saving...' : saved ? 'Saved!' : 'Save to Log'}
+                            </button>
                             <button className="btn btn-primary" onClick={reset}>Scan Another</button>
                         </div>
                     </div>

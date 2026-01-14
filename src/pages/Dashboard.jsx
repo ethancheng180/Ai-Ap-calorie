@@ -3,14 +3,18 @@ import Card from '../components/ui/Card';
 import MacroCard from '../components/analytics/MacroCard';
 import AnalyticsChart from '../components/analytics/AnalyticsChart';
 import { Plus, Flame, ArrowRight } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export default function Dashboard() {
+  const { currentUser } = useAuth();
+  const displayName = currentUser?.displayName || currentUser?.email?.split('@')[0] || 'User';
+
   return (
     <div className="fade-in space-y-6" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
       {/* Welcome Banner */}
       <div className="flex-between">
         <div>
-          <h1 className="text-h1">Good Morning, Ethan</h1>
+          <h1 className="text-h1" style={{ textTransform: 'capitalize' }}>Good Morning, {displayName}</h1>
           <p className="text-body">Here is your daily summary.</p>
         </div>
         <Link to="/log" className="btn btn-primary">
