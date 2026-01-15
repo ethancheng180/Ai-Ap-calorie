@@ -36,8 +36,41 @@ export default function ImageUploader({ onImageSelected }) {
         if (file.type.startsWith('image/')) {
             const reader = new FileReader();
             reader.onload = (e) => {
-                setPreview(e.target.result);
-                onImageSelected(file, e.target.result);
+                const img = new Image();
+                img.onload = () => {
+                    // Create a canvas to resize the image
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    // Set maximum dimensions (e.g., 1024px)
+                    const MAX_SIZE = 1024;
+                    if (width > height) {
+                        if (width > MAX_SIZE) {
+                            height *= MAX_SIZE / width;
+                            width = MAX_SIZE;
+                        }
+                    } else {
+                        if (height > MAX_SIZE) {
+                            width *= MAX_SIZE / height;
+                            height = MAX_SIZE;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Convert to base64 with 70% quality
+                    // This dramatically reduces file size for high-res iPhone photos
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+
+                    setPreview(compressedBase64);
+                    onImageSelected(file, compressedBase64);
+                };
+                img.src = e.target.result;
             };
             reader.readAsDataURL(file);
         }

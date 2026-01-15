@@ -8,7 +8,9 @@ import {
     sendSignInLinkToEmail,
     isSignInWithEmailLink,
     signInWithEmailLink,
-    sendPasswordResetEmail
+    sendPasswordResetEmail,
+    GoogleAuthProvider,
+    signInWithPopup
 } from 'firebase/auth';
 
 const AuthContext = React.createContext();
@@ -58,6 +60,11 @@ export function AuthProvider({ children }) {
         return sendPasswordResetEmail(auth, email);
     }
 
+    function loginWithGoogle() {
+        const provider = new GoogleAuthProvider();
+        return signInWithPopup(auth, provider);
+    }
+
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             setCurrentUser(user);
@@ -75,7 +82,8 @@ export function AuthProvider({ children }) {
         sendLoginLink,
         completeLoginLink,
         isLoginLink,
-        resetPassword
+        resetPassword,
+        loginWithGoogle,
     };
 
     return (

@@ -1,7 +1,10 @@
 {
-  "name": "ai-ap-calorie",
+  "name": "calorieai",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "Smart calorie tracking with AI-powered food image analysis",
+  "author": "CalorieAI Team",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "vite",

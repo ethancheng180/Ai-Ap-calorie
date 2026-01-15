@@ -7,7 +7,7 @@ import '../styles/Auth.css';
 export default function Login() {
     const emailRef = useRef();
     const passwordRef = useRef();
-    const { login, sendLoginLink, completeLoginLink, isLoginLink } = useAuth();
+    const { login, sendLoginLink, completeLoginLink, isLoginLink, loginWithGoogle } = useAuth();
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(false);
@@ -163,15 +163,26 @@ export default function Login() {
                     </button>
                 </form>
 
-                <div className="auth-footer">
-                    <button className="social-btn" aria-label="Google">
-                        <span style={{ fontWeight: 'bold', color: '#DB4437' }}>G</span>
-                    </button>
-                    <button className="social-btn" aria-label="Github">
-                        <span style={{ fontWeight: 'bold', color: '#333' }}>GH</span>
-                    </button>
-                    <button className="social-btn" aria-label="Facebook">
-                        <span style={{ fontWeight: 'bold', color: '#4267B2' }}>f</span>
+                <div className="auth-footer" style={{ display: 'flex', justifyContent: 'center' }}>
+                    <button
+                        className="social-btn"
+                        aria-label="Google"
+                        onClick={async () => {
+                            try {
+                                setError('');
+                                setLoading(true);
+                                await loginWithGoogle();
+                                navigate('/');
+                            } catch (err) {
+                                console.error('Google login failed:', err);
+                                setError('Failed to sign in with Google.');
+                                setLoading(false);
+                            }
+                        }}
+                        style={{ width: '100%', maxWidth: '300px', gap: '10px' }}
+                    >
+                        <span style={{ fontWeight: 'bold', color: '#DB4437', fontSize: '1.2rem' }}>G</span>
+                        <span style={{ color: 'var(--color-text-primary)' }}>Continue with Google</span>
                     </button>
                 </div>
 

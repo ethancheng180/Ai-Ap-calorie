@@ -2,27 +2,36 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-// import { getAnalytics } from "firebase/analytics"; // Optional
 
-// Your web app's Firebase configuration
+// Firebase configuration from environment variables
+// All values must be prefixed with VITE_ to be exposed to the client
 const firebaseConfig = {
-    apiKey: "AIzaSyBVv58KXJQvqnZS00AEw8mkiIOG63wSSCA",
-    authDomain: "ai-ap-calorie.firebaseapp.com",
-    databaseURL: "https://ai-ap-calorie-default-rtdb.firebaseio.com",
-    projectId: "ai-ap-calorie",
-    storageBucket: "ai-ap-calorie.firebasestorage.app",
-    messagingSenderId: "420816214668",
-    appId: "1:420816214668:web:56aa7f6704837af63eb9a9",
-    measurementId: "G-GHJK5GJR5G"
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+    databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    appId: import.meta.env.VITE_FIREBASE_APP_ID,
+    measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
+
+// Validate required config values
+const requiredFields = ['apiKey', 'authDomain', 'projectId'];
+const missingFields = requiredFields.filter(field => !firebaseConfig[field]);
+
+if (missingFields.length > 0) {
+    console.error(
+        `⚠️ Missing Firebase configuration: ${missingFields.join(', ')}\n` +
+        `Please check your .env file has the required VITE_FIREBASE_* variables.`
+    );
+}
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
 // Initialize Authentication and Firestore
-// These are required for the app to function
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-// const analytics = getAnalytics(app);
 
 export default app;
