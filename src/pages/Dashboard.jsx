@@ -1,13 +1,39 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Card from '../components/ui/Card';
 import MacroCard from '../components/analytics/MacroCard';
 import AnalyticsChart from '../components/analytics/AnalyticsChart';
 import { Plus, Flame, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { getTodayStats } from '../services/foodService';
 
 export default function Dashboard() {
   const { currentUser } = useAuth();
   const displayName = currentUser?.displayName || currentUser?.email?.split('@')[0] || 'User';
+
+  const [stats, setStats] = useState({ calories: 0, protein: 0, carbs: 0, fats: 0, mealCount: 0 });
+  const [loading, setLoading] = useState(true);
+
+  const calorieGoal = 2400;
+  const proteinGoal = 180;
+
+  useEffect(() => {
+    async function fetchStats() {
+      if (currentUser) {
+        try {
+          const todayStats = await getTodayStats(currentUser.uid);
+          setStats(todayStats);
+        } catch (err) {
+          console.error('Failed to fetch today stats:', err);
+        }
+      }
+      setLoading(false);
+    }
+    fetchStats();
+  }, [currentUser]);
+
+  const caloriePercent = Math.min((stats.calories / calorieGoal) * 100, 100);
+  const proteinPercent = Math.min((stats.protein / proteinGoal) * 100, 100);
 
   return (
     <div className="fade-in space-y-6" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
@@ -30,28 +56,28 @@ export default function Dashboard() {
             <span className="text-caption">Calories Eaten</span>
             <Flame size={20} color="var(--color-warning)" />
           </div>
-          <h2 className="text-h1">1,250</h2>
-          <p className="text-caption">of 2,400 kcal goal</p>
+          <h2 className="text-h1">{loading ? '...' : stats.calories.toLocaleString()}</h2>
+          <p className="text-caption">of {calorieGoal.toLocaleString()} kcal goal</p>
           <div style={{ height: '6px', backgroundColor: 'var(--color-bg-tertiary)', borderRadius: 'var(--radius-full)', marginTop: '8px', overflow: 'hidden' }}>
-            <div style={{ width: '52%', height: '100%', backgroundColor: 'var(--color-warning)', borderRadius: 'var(--radius-full)' }} />
+            <div style={{ width: `${caloriePercent}%`, height: '100%', backgroundColor: 'var(--color-warning)', borderRadius: 'var(--radius-full)' }} />
           </div>
         </Card>
 
         <Card className="flex-col gap-2">
           <span className="text-caption">Protein</span>
-          <h2 className="text-h1">90g</h2>
-          <p className="text-caption">of 180g goal</p>
+          <h2 className="text-h1">{loading ? '...' : `${stats.protein}g`}</h2>
+          <p className="text-caption">of {proteinGoal}g goal</p>
           <div style={{ height: '6px', backgroundColor: 'var(--color-bg-tertiary)', borderRadius: 'var(--radius-full)', marginTop: '8px', overflow: 'hidden' }}>
-            <div style={{ width: '50%', height: '100%', backgroundColor: '#FF3B30', borderRadius: 'var(--radius-full)' }} />
+            <div style={{ width: `${proteinPercent}%`, height: '100%', backgroundColor: '#FF3B30', borderRadius: 'var(--radius-full)' }} />
           </div>
         </Card>
 
         <Card className="flex-col gap-2">
-          <span className="text-caption">Burned</span>
-          <h2 className="text-h1">420</h2>
-          <p className="text-caption">Active calories</p>
+          <span className="text-caption">Meals Logged</span>
+          <h2 className="text-h1">{loading ? '...' : stats.mealCount}</h2>
+          <p className="text-caption">Today</p>
           <div style={{ height: '6px', backgroundColor: 'var(--color-bg-tertiary)', borderRadius: 'var(--radius-full)', marginTop: '8px', overflow: 'hidden' }}>
-            <div style={{ width: '30%', height: '100%', backgroundColor: '#34C759', borderRadius: 'var(--radius-full)' }} />
+            <div style={{ width: `${Math.min(stats.mealCount * 25, 100)}%`, height: '100%', backgroundColor: '#34C759', borderRadius: 'var(--radius-full)' }} />
           </div>
         </Card>
       </div>
