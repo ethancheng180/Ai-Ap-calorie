@@ -22,4 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+# Security
 .env
+.env.*
+*.env
+test-*.js
+check-*.cjs
+*.node.js
