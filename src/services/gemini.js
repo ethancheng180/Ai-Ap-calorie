@@ -1,14 +1,14 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// Initialize the API with your key
-// For security in production, this should be called from a backend.
-// But for this local demo, we will call it directly.
-const API_KEY = "AIzaSyBuCLeFzR5zwwuH7Ctde4TAjtj2IVPpHhY";
+// Initialize the API with your key from environment variable
+// Vite uses import.meta.env for environment variables (must be prefixed with VITE_)
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
 const genAI = new GoogleGenerativeAI(API_KEY);
 
 export async function analyzeFoodImage(imageFile) {
     try {
+        // Using gemini-flash-latest - verified working!
         const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
         // Convert file to base64
